@@ -15,7 +15,7 @@ const DEFAULT_WIDTH: i32 = 800;
 
 const ADD_NOTE_LABEL: &str = "Add new note";
 const REMOVE_NOTE_LABEL: &str = "Remove a note";
-const EDIT_NOTE_LABEL: &str = "Edit a note (Gnome Text Editor)";
+const EDIT_NOTE_LABEL: &str = "Edit a note";
 const TEXT_BOX_LABEL: &str = "** Your note contents will show here **";
 
 
@@ -62,7 +62,7 @@ fn create_app_structure(app_ref: &gtk::Application) {
     
     let add_button = gtk::Button::with_label(ADD_NOTE_LABEL);
     let remove_button = gtk::Button::with_label(REMOVE_NOTE_LABEL);
-    let edit_button = gtk::Button::with_label(EDIT_NOTE_LABEL);
+    let edit_button = gtk::Button::with_label(&format!("{EDIT_NOTE_LABEL} ({})", gtk_handlers::TEXT_EDITOR));
 
     add_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
     remove_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);

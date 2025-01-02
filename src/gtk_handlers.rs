@@ -28,6 +28,9 @@ pub const MAIN_CONTAINER: &str = "main_container";
 pub const BUTTON_BOX: &str = "button_box";
 pub const CONTENT_BOX: &str = "content_box";
 
+// Commands
+pub const TEXT_EDITOR: &str = "gnome-text-editor";
+
 
 /**
 Click event handler for "add note" button.
@@ -160,15 +163,15 @@ pub fn rm_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::A
         for child in hchilds.clone() {
             // Downcast a widget to a button to access it's ;abe;
             let btn = child.downcast::<gtk::Button>().unwrap();
-            if note_title != btn.label().expect("Button has no label").trim().to_string() {
-                continue;
-            }
-    
-            // Remove the note from the buttons box and from storage.
-            bbox_clone.remove(&btn);
-            let success = notes::delete_a_note(&note_title);
-            if success == false {
-                return;
+            if note_title == btn.label().expect("Button has no label").trim().to_string() {
+                // Remove the note from the buttons box and from storage.
+                bbox_clone.remove(&btn);
+                let success = notes::delete_a_note(&note_title);
+                if success == false {
+                    return;
+                }
+
+                break;
             }
         }
 
@@ -230,25 +233,12 @@ fn create_note_button_click_event(
 
 
 /**
-Get all childs from a gtk box.
+Event handler for the edit button event
+
 # Parameters:
-* `hbox`: A reference to a gtk box to get their childs.
-# Return:
-A vector of gtk widgets. 
+* `button_box_ref`: A reference to the button box.
+* `app_ref`: A reference to the gtk application.
  */
-fn get_hbox_childs(hbox: &gtk::Box) -> Vec<gtk::Widget> {
-    let mut children: Vec<gtk::Widget> = Vec::new();
-    let mut sibling = hbox.first_child();
-
-    while let Some(child) = sibling {
-        children.push(child.clone());
-        sibling = child.next_sibling();
-    }
-
-    children
-}
-
-
 pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::Application>) {
     let hchilds = get_hbox_childs(buttons_box_ref);
     if hchilds.is_empty() {
@@ -283,24 +273,24 @@ pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk:
         }
 
         for child in hchilds.clone() {
-            // Downcast a widget to a button to access it's ;abe;
+            // Downcast a widget to a button to access it's label
             let btn = child.downcast::<gtk::Button>().unwrap();
-            if note_title != btn.label().expect("Button has no label").trim().to_string() {
-                continue;
-            }
-            
-            let note_path_buff = PathBuf::from(NOTES_PATH).join(format!("{note_title}.txt"));
-            let note_path = match note_path_buff.to_str() {
-                Some(path) => path,
-                None => {
-                    eprintln!("Failed to get path for note {note_title}");
+            if note_title == btn.label().expect("Button has no label").trim().to_string() {
+                let note_path_buff = PathBuf::from(NOTES_PATH).join(format!("{note_title}.txt"));
+                let note_path = match note_path_buff.to_str() {
+                    Some(path) => path,
+                    None => {
+                        eprintln!("Failed to get path for note {note_title}");
+                        return;
+                    }
+                };
+
+                if let Err(e) = Command::new(TEXT_EDITOR).arg(note_path).spawn() {
+                    eprintln!("edit_button_click_event: {}: {}", FAILED_TO_EDIT, e);
                     return;
                 }
-            };
 
-            if let Err(e) = Command::new("gnome-text-editor").arg(note_path).spawn() {
-                eprintln!("edit_button_click_event: {}: {}", FAILED_TO_EDIT, e);
-                return;
+                break;
             }
         }
 
@@ -308,6 +298,26 @@ pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk:
         dialog.destroy();
     });
     
+}
+
+
+/**
+Get all childs from a gtk box.
+# Parameters:
+* `hbox`: A reference to a gtk box to get their childs.
+# Return:
+A vector of gtk widgets. 
+ */
+fn get_hbox_childs(hbox: &gtk::Box) -> Vec<gtk::Widget> {
+    let mut children: Vec<gtk::Widget> = Vec::new();
+    let mut sibling = hbox.first_child();
+
+    while let Some(child) = sibling {
+        children.push(child.clone());
+        sibling = child.next_sibling();
+    }
+
+    children
 }
 
 
