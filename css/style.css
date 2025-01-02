@@ -1,0 +1,127 @@
+button {
+    background-image: none;
+    background-color: #7423f7;
+    border: 1px solid #000; 
+    color: #ffffff;
+}
+
+main_container {
+    background-image: none;
+    background-color: #99b9f5;
+    border: 1px solid #99b9f5;
+}
+
+.note_btn {
+    border: 1px solid #000; 
+    border-radius: 4px;
+    padding: 10px 20px;
+    margin: 5px;
+    font-weight: bold;
+    transition: background-color 100ms;
+}
+
+.note_btn:hover {
+    background-color: #d4e9f9; 
+    color: #000;
+    border: 1px solid #457ffd; 
+}
+
+.note_btn:active {
+    background-color: #8aacc8; 
+    color: #000;
+}
+
+.interact_btn {
+    border-radius: 4px;
+    padding: 10px 20px;
+    margin: 5px;
+    font-weight: bold;
+    transition: background-color 100ms;
+}
+
+.interact_btn:hover {
+    background-color: #ffe2b8;
+    color: #5c3c00;
+    border: 1px solid #ffba72; 
+}
+
+.interact_btn:active {
+    background-color: #ffba72; 
+    color: #000;
+}
+
+/* button_box {
+    background-color: #f7f9fc; 
+    border: 1px solid #d3d7de; 
+    padding: 10px;
+    border-radius: 10px;
+    margin: 10px;
+} */
+
+content_box {
+    background-color: #ffffff;
+    border: 2px solid #d3d7de;
+    padding: 20px;
+    border-radius: 2px;
+    margin: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+content_box scrollbar slider:hover {
+    background: #004f73;
+    box-shadow: 0px 0px 5px #004f73;
+}
+
+content_box scrollbar slider {
+    background: #8aacc8; 
+    border-radius: 4px;
+}
+
+content_box scrollbar slider:hover {
+    background: #004f73; 
+}
+
+label.diag_title {
+    color: #000;
+    border: #000;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+/* entry.diag_title {
+
+} */
+
+diag_box {
+    background-image: none;
+    background-color: #a4bef7;
+}
+
+dialog {
+    border: #000;
+    border-radius: 1px;
+}
+
+label.diag_contents {
+    color: #000;
+    border: #000;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+textview.diag_contents {
+    background-image: none;
+    background-color: #ffffff;
+    border: 2px solid #d3d7de;
+    border-radius: 2px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+textview.diag_contents scrollbar slider {
+    background: #8aacc8; 
+    border-radius: 4px;
+}
+
+textview.diag_contents scrollbar slider:hover {
+    background: #004f73; 
+}
