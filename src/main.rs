@@ -13,6 +13,10 @@ const APP_NAME: &str = "My Notes";
 const CSS_PATH: &str = "css/style.css";
 const DEFAULT_WIDTH: i32 = 800;
 
+const ADD_NOTE_LABEL: &str = "Add new note";
+const REMOVE_NOTE_LABEL: &str = "Remove a note";
+const TEXT_BOX_LABEL: &str = "** Your note contents will show here **";
+
 
 fn main() {
     let app = gtk::Application::builder()
@@ -34,44 +38,47 @@ Creates general app structure with buttons functionalities
 * `app_ref`: A reference to the gtk application.
  */
 fn create_app_structure(app_ref: &gtk::Application) {
-    // Main container for app elements
+    // We need to use multiple clones of the application, so we'll use a
+    // smart reference-counted pointer, this will be done with multiple elements.
+    // Sometimes an element has to be dereferenced before referencing. e: Rc<T> => *e: T => &*e: &T 
+    let app_ref = Rc::new(app_ref.clone());
+
+    // ** Main container for app elements **
     let vertical_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .spacing(5)
         .css_name(gtk_handlers::MAIN_CONTAINER)
         .build();
 
-    // Create base level app elements
-    let buttons_box = gtk::Box::builder()
+    // ** Create base level app elements **
+    // The buttons box will also have multiple clones, so we use Rc.
+    let buttons_box = Rc::new(gtk::Box::builder()
         .orientation(gtk::Orientation::Horizontal)
         .spacing(5)
         .homogeneous(true)
         .css_name(gtk_handlers::BUTTON_BOX)
-        .build();
+        .build());
     
-    let add_button = gtk::Button::with_label("Add new note");
-    let remove_button = gtk::Button::with_label("Remove a note");
+    let add_button = gtk::Button::with_label(ADD_NOTE_LABEL);
+    let remove_button = gtk::Button::with_label(REMOVE_NOTE_LABEL);
 
     add_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
     remove_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
 
-    let text_box = gtk::Label::builder()
-        .label("<Your selected note's contents will show here>")
+    // We'll also use Rc for the text_box so we can create reference counted pointers.
+    let text_box = Rc::new(gtk::Label::builder()
+        .label(TEXT_BOX_LABEL)
         .margin_start(12)
         .margin_end(12)
         .margin_bottom(12)
-        .margin_bottom(12)
+        .margin_top(12)
         .height_request(100)
         .use_markup(true)
         .css_name(gtk_handlers::CONTENT_BOX)
-        .build();
-
-    // This is necessary as we can't move the button multiple times, so we use a smart
-    // reference-counted pointer for the multiple loop iterations.
-    let text_box = Rc::new(text_box);
+        .build());
     
     // Arrange main vertical box for display
-    vertical_box.append(&buttons_box);
+    vertical_box.append(&*buttons_box);
     vertical_box.append(&*text_box);
     vertical_box.append(&add_button);
     vertical_box.append(&remove_button);
@@ -94,22 +101,22 @@ fn create_app_structure(app_ref: &gtk::Application) {
     }
 
     // Create a reference clone for the add button
-    let mut bbox_clone = buttons_box.clone();
-    let mut app_ref_clone = app_ref.clone();
+    let mut buttons_box_clone = Rc::clone(&buttons_box);
+    let mut app_ref_clone = Rc::clone(&app_ref);
     add_button.connect_clicked(move |_| {
-        gtk_handlers::add_button_click_event(&bbox_clone, &text_box, &app_ref_clone);
+        gtk_handlers::add_button_click_event(&buttons_box_clone, &text_box, &app_ref_clone);
     });
 
-    // Another clone for the remove button
-    bbox_clone = buttons_box.clone();
-    app_ref_clone = app_ref.clone();
+    // Another reference clone for the remove button
+    buttons_box_clone = Rc::clone(&buttons_box);
+    app_ref_clone = Rc::clone(&app_ref);
     remove_button.connect_clicked(move |_| {
-        gtk_handlers::rm_button_click_event(&bbox_clone, &app_ref_clone);
+        gtk_handlers::rm_button_click_event(&buttons_box_clone, &app_ref_clone);
     });
 
     // Create window and display it.
     let window = gtk::ApplicationWindow::builder()
-        .application(app_ref)
+        .application(&*app_ref)
         .default_width(DEFAULT_WIDTH)
         .title(APP_NAME)
         .child(&vertical_box)

@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use gtk::prelude::*;
 use gtk;
 
@@ -31,16 +30,16 @@ pub const CONTENT_BOX: &str = "content_box";
 Click event handler for "add note" button.
 
 # Parameters:
-* `bbox_clone_ref`: A reference to the buttons box.
+* `buttons_box_ref`: A reference to the buttons box.
 * `text_box_ref`: A reference to the box that displays note's contents.
 * `app_ref`: A reference to the gtk application.
  */
 pub fn add_button_click_event(
-    bbox_clone_ref: &gtk::Box,
-    text_box_ref: &Rc<gtk::Label>,
+    buttons_box_ref: &gtk::Box,
+    text_box_ref: &gtk::Label,
     app_ref: &gtk::Application
 ) {
-    let hchilds = get_hbox_childs(bbox_clone_ref);
+    let hchilds = get_hbox_childs(buttons_box_ref);
     if hchilds.len() >= 5 {
         eprintln!("add_button_click_event: {}", CANT_ADD_NOTES);
         return;
@@ -101,7 +100,7 @@ pub fn add_button_click_event(
     content_area.append(&create_button);
 
     // Create clones to use inside Fn enclosure
-    let bbox_clone = bbox_clone_ref.clone();
+    let bbox_clone = buttons_box_ref.clone();
     let text_box_clone = text_box_ref.clone();
 
     dialog.show();
@@ -121,11 +120,11 @@ pub fn add_button_click_event(
 /**
 Click event handler for the "remove note" button.
 # Parameters:
-* `bbox_clone_ref`: A reference to the buttons horizontal box.
+* `buttons_box_ref`: A reference to the buttons horizontal box.
 * `app_ref`: A reference to the gtk application
  */
-pub fn rm_button_click_event(bbox_clone_ref: &gtk::Box, app_ref: &gtk::Application){
-    let hchilds = get_hbox_childs(bbox_clone_ref);
+pub fn rm_button_click_event(buttons_box_ref: &gtk::Box, app_ref: &gtk::Application){
+    let hchilds = get_hbox_childs(buttons_box_ref);
     if hchilds.is_empty() {
         eprintln!("rm_button_click_event: {}", NO_BUTTONS_TO_DELETE);
         return;
@@ -156,7 +155,7 @@ pub fn rm_button_click_event(bbox_clone_ref: &gtk::Box, app_ref: &gtk::Applicati
     content_area.append(&delete_button);
 
     // Create clones to use inside Fn enclosure
-    let bbox_clone = bbox_clone_ref.clone();
+    let bbox_clone = buttons_box_ref.clone();
 
     dialog.show();
 
@@ -194,14 +193,14 @@ pub fn rm_button_click_event(bbox_clone_ref: &gtk::Box, app_ref: &gtk::Applicati
 * `title_entry_ref`: A reference to an entry for the created note's title input.
 * `content_text_view_ref`: A reference to a text view with the note's content.
 * `text_box_ref`: A reference to the label that displays notes contents.
-* `bbox_ref`: A reference to the buttons box.
+* `buttons_box_ref`: A reference to the buttons box.
 * `dialog_ref`: A reference to the initialized dialog.
  */
 fn create_note_button_click_event(
     title_entry_ref: &gtk::Entry,
     content_text_view_ref: &gtk::TextView,
-    text_box_ref: &Rc<gtk::Label>,
-    bbox_ref: &gtk::Box,
+    text_box_ref: &gtk::Label,
+    buttons_box_ref: &gtk::Box,
     dialog_ref: &gtk::Dialog
 ) {
     // Extract the title and contents
@@ -232,7 +231,7 @@ fn create_note_button_click_event(
         notes::display_file_contents(&title, &tb_clone);
     });
 
-    bbox_ref.append(&new_button);
+    buttons_box_ref.append(&new_button);
     new_button.show();
     dialog_ref.close();
     dialog_ref.destroy();
