@@ -15,6 +15,7 @@ const DEFAULT_WIDTH: i32 = 800;
 
 const ADD_NOTE_LABEL: &str = "Add new note";
 const REMOVE_NOTE_LABEL: &str = "Remove a note";
+const EDIT_NOTE_LABEL: &str = "Edit a note (Gnome Text Editor)";
 const TEXT_BOX_LABEL: &str = "** Your note contents will show here **";
 
 
@@ -61,9 +62,11 @@ fn create_app_structure(app_ref: &gtk::Application) {
     
     let add_button = gtk::Button::with_label(ADD_NOTE_LABEL);
     let remove_button = gtk::Button::with_label(REMOVE_NOTE_LABEL);
+    let edit_button = gtk::Button::with_label(EDIT_NOTE_LABEL);
 
     add_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
     remove_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
+    edit_button.style_context().add_class(gtk_handlers::INTERACT_BUTTON_CLASS);
 
     // We'll also use Rc for the text_box so we can create reference counted pointers.
     let text_box = Rc::new(gtk::Label::builder()
@@ -82,6 +85,7 @@ fn create_app_structure(app_ref: &gtk::Application) {
     vertical_box.append(&*text_box);
     vertical_box.append(&add_button);
     vertical_box.append(&remove_button);
+    vertical_box.append(&edit_button);
 
     let note_titles = notes::load_notes();
 
@@ -112,6 +116,13 @@ fn create_app_structure(app_ref: &gtk::Application) {
     app_ref_clone = Rc::clone(&app_ref);
     remove_button.connect_clicked(move |_| {
         gtk_handlers::rm_button_click_event(&buttons_box_clone, &app_ref_clone);
+    });
+
+    // Another reference clone for the edit button
+    buttons_box_clone = Rc::clone(&buttons_box);
+    app_ref_clone = Rc::clone(&app_ref);
+    edit_button.connect_clicked(move |_| {
+        gtk_handlers::edit_button_click_event(&buttons_box_clone, &app_ref_clone);
     });
 
     // Create window and display it.

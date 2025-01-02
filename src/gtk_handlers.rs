@@ -1,17 +1,19 @@
-use std::rc::Rc;
+use std::{rc::Rc, process::Command, path::PathBuf};
 use gtk::prelude::*;
 use gtk;
 
-use crate::notes;
+use crate::notes::{self, NOTES_PATH};
 
 // Dialog message defaults
 const NEW_NOTE_DIAG: &str = "New Note";
 const DELETE_NOTE_DIAG: &str = "Delete Note";
+const EDIT_NOTE_DIAG: &str = "Edit note";
 
 // Error messages
 const CANT_ADD_NOTES: &str = "Can't add more notes";
 const NO_BUTTONS_TO_DELETE: &str = "There are no buttons to delete";
 const NOTE_CANT_BE_EMPTY: &str = "Note data can't be empty";
+const FAILED_TO_EDIT: &str = "Could not launch editor for note";
 
 // CSS Classes
 const DIAG_TITLE_CLASS: &str = "diag_title";
@@ -47,13 +49,7 @@ pub fn add_button_click_event(
     }
 
     // Initialize the main dialog window
-    let dialog = gtk::Dialog::builder()
-        .title(NEW_NOTE_DIAG)
-        .transient_for(&app_ref.active_window().expect("No active window found"))
-        .destroy_with_parent(true)
-        .modal(true)
-        .css_name(DIALOG_BOX)
-        .build();
+    let dialog = create_dialog(app_ref, NEW_NOTE_DIAG);
 
     // Everything will be on this content area
     let content_area = dialog.content_area();
@@ -132,13 +128,7 @@ pub fn rm_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::A
     }
 
     // Initialize dialog window
-    let dialog = gtk::Dialog::builder()
-        .title(DELETE_NOTE_DIAG)
-        .transient_for(&app_ref.active_window().unwrap())
-        .destroy_with_parent(true)
-        .modal(true)
-        .css_name(DIALOG_BOX)
-        .build();
+    let dialog = create_dialog(app_ref, DELETE_NOTE_DIAG);
 
     // All content will be in this box
     let content_area = dialog.content_area();
@@ -256,4 +246,77 @@ fn get_hbox_childs(hbox: &gtk::Box) -> Vec<gtk::Widget> {
     }
 
     children
+}
+
+
+pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::Application>) {
+    let hchilds = get_hbox_childs(buttons_box_ref);
+    if hchilds.is_empty() {
+        eprintln!("edit_button_click_event: {}", NO_BUTTONS_TO_DELETE);
+        return;
+    }
+
+    let dialog = create_dialog(app_ref, EDIT_NOTE_DIAG);
+
+    // All content will be in this box
+    let content_area = dialog.content_area();
+
+    // Input box for note title to identify the note to be deleted.
+    let input_box = gtk::Entry::builder()
+        .placeholder_text("Note title")
+        .css_classes([DIAG_TITLE_CLASS])
+        .build();
+
+    let edit_button: gtk::Button = gtk::Button::with_label("Edit");
+    edit_button.style_context().add_class(DIAG_BUTTON_CLASS);
+
+    content_area.append(&input_box);
+    content_area.append(&edit_button);
+
+    dialog.show();
+
+    edit_button.connect_clicked(move |_| {
+        let note_title = input_box.text().trim().to_string();
+        if note_title.is_empty() {
+            eprintln!("edit_button_click_event: {}", NOTE_CANT_BE_EMPTY);
+            return;
+        }
+
+        for child in hchilds.clone() {
+            // Downcast a widget to a button to access it's ;abe;
+            let btn = child.downcast::<gtk::Button>().unwrap();
+            if note_title != btn.label().expect("Button has no label").trim().to_string() {
+                continue;
+            }
+            
+            let note_path_buff = PathBuf::from(NOTES_PATH).join(format!("{note_title}.txt"));
+            let note_path = match note_path_buff.to_str() {
+                Some(path) => path,
+                None => {
+                    eprintln!("Failed to get path for note {note_title}");
+                    return;
+                }
+            };
+
+            if let Err(e) = Command::new("gnome-text-editor").arg(note_path).spawn() {
+                eprintln!("edit_button_click_event: {}: {}", FAILED_TO_EDIT, e);
+                return;
+            }
+        }
+
+        dialog.close();
+        dialog.destroy();
+    });
+    
+}
+
+
+fn create_dialog(app_ref: &Rc<gtk::Application>, diag_msg: &str) -> gtk::Dialog {
+    gtk::Dialog::builder()
+        .title(diag_msg)
+        .transient_for(&app_ref.active_window().expect("No active window found"))
+        .destroy_with_parent(true)
+        .modal(true)
+        .css_name(DIALOG_BOX)
+        .build()
 }
