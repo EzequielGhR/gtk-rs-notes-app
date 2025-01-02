@@ -1,8 +1,7 @@
 use std::rc::Rc;
 use std::path::PathBuf;
 use std::str::FromStr;
-use gtk::{prelude::*, CssProvider};
-use gtk;
+use gtk::{self, prelude::*};
 
 mod notes;
 mod gtk_handlers;
@@ -154,7 +153,7 @@ fn load_css() {
         return;
     }
     
-    let provider = CssProvider::new();
+    let provider = gtk::CssProvider::new();
     provider.load_from_path(css_path);
 
     // Set style context for default display with a high priority

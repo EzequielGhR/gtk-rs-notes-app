@@ -1,6 +1,5 @@
 use std::{rc::Rc, process::Command, path::PathBuf};
-use gtk::prelude::*;
-use gtk;
+use gtk::{self, prelude::*};
 
 use crate::notes::{self, NOTES_PATH};
 
@@ -11,7 +10,7 @@ const EDIT_NOTE_DIAG: &str = "Edit note";
 
 // Error messages
 const CANT_ADD_NOTES: &str = "Can't add more notes";
-const NO_BUTTONS_TO_DELETE: &str = "There are no buttons to delete";
+const NO_NOTES_AVAILABLE: &str = "There are no notes available";
 const NOTE_CANT_BE_EMPTY: &str = "Note data can't be empty";
 const FAILED_TO_EDIT: &str = "Could not launch editor for note";
 
@@ -126,7 +125,7 @@ Click event handler for the "remove note" button.
 pub fn rm_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::Application>){
     let hchilds = get_hbox_childs(buttons_box_ref);
     if hchilds.is_empty() {
-        eprintln!("rm_button_click_event: {}", NO_BUTTONS_TO_DELETE);
+        eprintln!("rm_button_click_event: {}", NO_NOTES_AVAILABLE);
         return;
     }
 
@@ -242,7 +241,7 @@ Event handler for the edit button event
 pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::Application>) {
     let hchilds = get_hbox_childs(buttons_box_ref);
     if hchilds.is_empty() {
-        eprintln!("edit_button_click_event: {}", NO_BUTTONS_TO_DELETE);
+        eprintln!("edit_button_click_event: {}", NO_NOTES_AVAILABLE);
         return;
     }
 
