@@ -13,6 +13,7 @@ const CANT_ADD_NOTES: &str = "Can't add more notes";
 const NO_NOTES_AVAILABLE: &str = "There are no notes available";
 const NOTE_CANT_BE_EMPTY: &str = "Note data can't be empty";
 const FAILED_TO_EDIT: &str = "Could not launch editor for note";
+const NOTE_NOT_FOUND: &str = "Note could not be found";
 
 // CSS Classes
 const DIAG_TITLE_CLASS: &str = "diag_title";
@@ -162,20 +163,23 @@ pub fn rm_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk::A
         for child in hchilds.clone() {
             // Downcast a widget to a button to access it's ;abe;
             let btn = child.downcast::<gtk::Button>().unwrap();
-            if note_title == btn.label().expect("Button has no label").trim().to_string() {
-                // Remove the note from the buttons box and from storage.
-                bbox_clone.remove(&btn);
-                let success = notes::delete_a_note(&note_title);
-                if success == false {
-                    return;
-                }
-
-                break;
+            if note_title != btn.label().expect("Button has no label").trim().to_string() {
+                continue;
             }
+
+            // Remove the note from the buttons box and from storage.
+            bbox_clone.remove(&btn);
+            let success = notes::delete_a_note(&note_title);
+            if success == false {
+                return;
+            }
+
+            dialog.close();
+            dialog.destroy();
+            return;
         }
 
-        dialog.close();
-        dialog.destroy();
+        eprintln!("rm_button_click_event: {NOTE_NOT_FOUND} \"{note_title}\""); 
     });
 }
 
@@ -274,27 +278,29 @@ pub fn edit_button_click_event(buttons_box_ref: &Rc<gtk::Box>, app_ref: &Rc<gtk:
         for child in hchilds.clone() {
             // Downcast a widget to a button to access it's label
             let btn = child.downcast::<gtk::Button>().unwrap();
-            if note_title == btn.label().expect("Button has no label").trim().to_string() {
-                let note_path_buff = PathBuf::from(NOTES_PATH).join(format!("{note_title}.txt"));
-                let note_path = match note_path_buff.to_str() {
-                    Some(path) => path,
-                    None => {
-                        eprintln!("Failed to get path for note {note_title}");
-                        return;
-                    }
-                };
-
-                if let Err(e) = Command::new(TEXT_EDITOR).arg(note_path).spawn() {
-                    eprintln!("edit_button_click_event: {}: {}", FAILED_TO_EDIT, e);
+            if note_title != btn.label().expect("Button has no label").trim().to_string() {
+                continue;
+            }
+            let note_path_buff = PathBuf::from(NOTES_PATH).join(format!("{note_title}.txt"));
+            let note_path = match note_path_buff.to_str() {
+                Some(path) => path,
+                None => {
+                    eprintln!("Failed to get path for note {note_title}");
                     return;
                 }
+            };
 
-                break;
+            if let Err(e) = Command::new(TEXT_EDITOR).arg(note_path).spawn() {
+                eprintln!("edit_button_click_event: {}: {}", FAILED_TO_EDIT, e);
+                return;
             }
+
+            dialog.close();
+            dialog.destroy();
+            return;
         }
 
-        dialog.close();
-        dialog.destroy();
+        eprintln!("edit_button_click_event: {NOTE_NOT_FOUND} \"{note_title}\"");
     });
     
 }
@@ -320,6 +326,16 @@ fn get_hbox_childs(hbox: &gtk::Box) -> Vec<gtk::Widget> {
 }
 
 
+/**
+Create a gtk dialog.
+
+# Parameters
+`app_ref`: A reference to a pointer of the Application
+`diag_msg`: The message to be displayed on the dialog.
+
+# Return:
+The gtk dialog widget.
+ */
 fn create_dialog(app_ref: &Rc<gtk::Application>, diag_msg: &str) -> gtk::Dialog {
     gtk::Dialog::builder()
         .title(diag_msg)
